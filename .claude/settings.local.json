@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:jcagsas.com)",
+      "Bash(npm install *)",
+      "Bash(npx next *)",
+      "WebFetch(domain:github.com)",
+      "Bash(uipro init *)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"electrical infrastructure energy construction professional corporate B2B service\" --design-system -p \"JCAG SAS\")",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"landing hero social-proof trust authority B2B\" --domain landing)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"corporate professional minimalism\" --domain style)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"layout responsive animation\" --stack nextjs)",
+      "Bash(git add *)"
+    ]
+  }
+}
