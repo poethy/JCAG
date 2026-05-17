@@ -8,6 +8,7 @@ const navLinks = [
   { label: "Proyectos", href: "#proyectos" },
   { label: "Aliados", href: "#aliados" },
   { label: "Contacto", href: "#contacto" },
+  { label: "Formulario SST", href: "/sst" },
 ];
 
 export default function Navbar() {

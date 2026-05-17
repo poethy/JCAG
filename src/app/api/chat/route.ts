@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     const history = messages.map((m: { role: string; content: string }) => ({
-      role: m.role === "assistant" ? "assistant" : "user",
+      role: (m.role === "assistant" ? "assistant" : "user") as "assistant" | "user",
       content: m.content,
     }));
 
