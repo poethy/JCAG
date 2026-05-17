@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import Chatbot from "@/components/Chatbot";
 import About from "@/components/About";
 import Services from "@/components/Services";
 import Stats from "@/components/Stats";
@@ -24,6 +25,7 @@ export default function Home() {
         <Contact />
       </main>
       <Footer />
+      <Chatbot />
     </>
   );
 }
