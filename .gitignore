@@ -37,3 +37,7 @@ next-env.d.ts
 __pycache__/
 *.pyc
 *.pyo
+
+# claude code (local tooling only)
+.claude/skills/
+.claude/launch.json
