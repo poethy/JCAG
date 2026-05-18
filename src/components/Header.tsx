@@ -235,6 +235,23 @@ export default function Header() {
           >
             Contratar ↗
           </a>
+          <a
+            href="/sst"
+            onClick={() => setOpen(false)}
+            style={{
+              display: "block",
+              marginTop: 8,
+              padding: "10px 0",
+              fontFamily: "var(--f-mono)",
+              fontSize: 10,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--g-3)",
+              textAlign: "center",
+            }}
+          >
+            Formulario SST →
+          </a>
         </div>
       )}
 
