@@ -40,13 +40,38 @@ export default function SignatureCanvas({ onChange }: Props) {
     }
   }, [onChange]);
 
+  const drawGrid = useCallback(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(0,0,0,0.07)";
+    ctx.lineWidth = 0.5;
+    const step = 20;
+    for (let x = 0; x <= canvas.width; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= canvas.height; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.strokeStyle = "#0f172a";
+
+    drawGrid();
+
+    ctx.strokeStyle = "#1a1a18";
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -87,36 +112,56 @@ export default function SignatureCanvas({ onChange }: Props) {
       canvas.removeEventListener("touchmove", onTouchMove);
       canvas.removeEventListener("touchend", endDraw);
     };
-  }, [startDraw, draw, endDraw]);
+  }, [startDraw, draw, endDraw, drawGrid]);
 
   const clear = () => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    ctx.strokeStyle = "#1a1a18";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     hasStroke.current = false;
     onChange(null);
   };
 
   return (
     <div>
-      <div className="border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-white touch-none">
+      <div style={{
+        border: "1px solid var(--ink)",
+        overflow: "hidden",
+        background: "var(--bg)",
+        touchAction: "none",
+      }}>
         <canvas
           ref={canvasRef}
           width={600}
           height={160}
-          className="w-full cursor-crosshair"
-          style={{ touchAction: "none" }}
+          style={{ width: "100%", cursor: "crosshair", display: "block", touchAction: "none" }}
         />
       </div>
-      <div className="flex items-center justify-between mt-2">
-        <p className="text-xs text-slate-400">Firma con el dedo o el mouse</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+        <span style={{ fontFamily: "var(--f-mono)", fontSize: 9, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+          FIRMA CON EL DEDO O EL MOUSE
+        </span>
         <button
           type="button"
           onClick={clear}
-          className="text-xs text-slate-500 hover:text-red-600 font-medium transition-colors cursor-pointer"
+          style={{
+            fontFamily: "var(--f-mono)",
+            fontSize: 9,
+            letterSpacing: "0.08em",
+            color: "var(--g-3)",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+            textTransform: "uppercase",
+          }}
         >
-          Limpiar firma
+          LIMPIAR →
         </button>
       </div>
     </div>

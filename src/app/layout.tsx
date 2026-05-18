@@ -1,26 +1,40 @@
 import type { Metadata } from "next";
-import { Poppins, Open_Sans } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-poppins",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter-tight",
   display: "swap",
 });
 
-const openSans = Open_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-open-sans",
+  style: ["normal", "italic"],
+  weight: ["300", "400"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "JCAG S.A.S — Infraestructura Eléctrica",
   description:
-    "Empresa colombiana especializada en instalación y mantenimiento de infraestructura eléctrica para el sector energético.",
-  keywords: ["infraestructura eléctrica", "subestaciones", "CHEC", "Colombia", "montaje electromecánico"],
+    "Firma colombiana especializada en infraestructura eléctrica de alta tensión: subestaciones, redes, generación solar y obra civil asociada.",
+  keywords: [
+    "infraestructura eléctrica",
+    "subestaciones",
+    "CHEC",
+    "Colombia",
+    "montaje electromecánico",
+  ],
 };
 
 export default function RootLayout({
@@ -30,7 +44,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={`${poppins.variable} ${openSans.variable} font-sans antialiased`}>
+      <body
+        className={`${interTight.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      >
         {children}
       </body>
     </html>

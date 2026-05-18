@@ -1,87 +1,231 @@
-const testimonials = [
+const TESTIMONIALS = [
   {
-    quote:
-      "Mil gracias por el apoyo y ser aliado estratégico durante la ejecución de este contrato. JCAG es una gran empresa.",
+    ref: "T-01",
+    quote: "Mil gracias por el apoyo y ser aliado estratégico durante la ejecución de este contrato. JCAG es una gran empresa.",
     author: "Cliente EPM",
     project: "Proyecto Plan de Choque",
     rating: 5,
   },
   {
-    quote:
-      "Excelente estructura administrativa en campo. Disponibilidad de personal técnico ágil y oportuna de acuerdo a las necesidades.",
+    ref: "T-02",
+    quote: "Excelente estructura administrativa en campo. Disponibilidad de personal técnico ágil y oportuna de acuerdo a las necesidades.",
     author: "Cliente CHEC",
     project: "Proyecto Regivit",
     rating: 5,
   },
   {
-    quote:
-      "La empresa JCAG cumplió con los requerimientos técnicos del proyecto de manera satisfactoria.",
+    ref: "T-03",
+    quote: "La empresa JCAG cumplió con los requerimientos técnicos del proyecto de manera satisfactoria.",
     author: "Cliente EPM",
     project: "Modernización Subestación Betulia",
     rating: 4,
   },
   {
-    quote:
-      "JCAG ha sido un aliado estratégico en el desarrollo de muchos proyectos del sector eléctrico, con cumplimiento total.",
+    ref: "T-04",
+    quote: "JCAG ha sido un aliado estratégico en el desarrollo de muchos proyectos del sector eléctrico, con cumplimiento total.",
     author: "Cinergy",
     project: "Proyectos sector energético",
     rating: 5,
   },
 ];
 
-function StarRating({ rating }: { rating: number }) {
+const AVG = (TESTIMONIALS.reduce((s, t) => s + t.rating, 0) / TESTIMONIALS.length).toFixed(2);
+
+function RatingBlocks({ rating }: { rating: number }) {
   return (
-    <div className="flex gap-1 mb-4">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <svg
-          key={i}
-          className={`w-4 h-4 ${i < rating ? "text-orange-400" : "text-slate-200"}`}
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <span
+        style={{
+          fontFamily: "var(--f-mono)",
+          fontSize: 12,
+          letterSpacing: "0.06em",
+          color: "var(--ink)",
+        }}
+      >
+        {Array.from({ length: 5 }).map((_, i) =>
+          i < rating ? "■" : "□"
+        ).join("")}
+      </span>
+      <span
+        style={{
+          fontFamily: "var(--f-mono)",
+          fontSize: 10,
+          color: "var(--g-3)",
+          letterSpacing: "0.06em",
+        }}
+      >
+        {rating}.0 / 5.0
+      </span>
     </div>
   );
 }
 
 export default function Testimonials() {
   return (
-    <section className="py-24 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14">
-          <span className="text-orange-500 font-semibold text-sm uppercase tracking-widest">
-            Testimonios
+    <section
+      id="testimonios"
+      style={{ paddingTop: "var(--pad-y)", paddingBottom: "var(--pad-y)" }}
+    >
+      <div style={{ maxWidth: "var(--max)", margin: "0 auto", padding: "0 var(--pad-x)" }}>
+
+        {/* Section header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "16px 0",
+            borderBottom: "1px solid var(--g-5)",
+            marginBottom: 56,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+            <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.08em", fontWeight: 600, color: "var(--ink)" }}>
+              SEC. 05 / 08
+            </span>
+            <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.08em", color: "var(--g-3)", textTransform: "uppercase" }}>
+              Testimonios
+            </span>
+          </div>
+          <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+            04 RECIENTES · FUENTE VERIFICADA
           </span>
-          <h2 className="mt-2 text-4xl sm:text-5xl font-black text-blue-900">
-            Lo que dicen nuestros clientes
-          </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {testimonials.map((t) => (
-            <div
-              key={t.project}
-              className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100"
-            >
-              <StarRating rating={t.rating} />
-              <p className="text-slate-600 text-sm leading-relaxed mb-6 italic">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <div className="flex items-center justify-between">
+        {/* H2 + sub-copy */}
+        <div className="test-intro">
+          <h2
+            style={{
+              fontSize: "clamp(28px, 3.5vw, 52px)",
+              fontWeight: 400,
+              letterSpacing: "-0.028em",
+              lineHeight: 1.02,
+              color: "var(--ink)",
+            }}
+          >
+            Lo que dicen
+            <br />
+            <em style={{ fontStyle: "italic", fontWeight: 300 }}>nuestros clientes.</em>
+          </h2>
+          <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--g-2)", maxWidth: 360, alignSelf: "end" }}>
+            Calificaciones recogidas directamente de los responsables de cada contrato. Calificación promedio:{" "}
+            <span style={{ fontFamily: "var(--f-mono)", color: "var(--ink)", fontWeight: 500 }}>
+              {AVG} / 5.00.
+            </span>
+          </p>
+        </div>
+
+        {/* Cards grid */}
+        <div className="test-grid" style={{ marginTop: 56 }}>
+          {TESTIMONIALS.map((t) => (
+            <article key={t.ref} className="test-card">
+              {/* Card top */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 24,
+                }}
+              >
+                <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.08em" }}>
+                  {t.ref}
+                </span>
+                <RatingBlocks rating={t.rating} />
+              </div>
+
+              {/* Quote */}
+              <blockquote
+                style={{
+                  borderLeft: "2px solid var(--g-4)",
+                  paddingLeft: 20,
+                  margin: 0,
+                  flexGrow: 1,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 1.7,
+                    color: "var(--g-1)",
+                    fontStyle: "italic",
+                    fontWeight: 300,
+                  }}
+                >
+                  "{t.quote}"
+                </p>
+              </blockquote>
+
+              {/* Card footer */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 28,
+                  paddingTop: 20,
+                  borderTop: "1px solid var(--g-5)",
+                }}
+              >
                 <div>
-                  <p className="font-semibold text-blue-900 text-sm">{t.author}</p>
-                  <p className="text-slate-400 text-xs">{t.project}</p>
+                  <p style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", marginBottom: 3 }}>
+                    {t.author}
+                  </p>
+                  <p style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+                    {t.project}
+                  </p>
                 </div>
-                <span className="bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">
-                  Verificado
+                <span
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 9,
+                    letterSpacing: "0.1em",
+                    color: "var(--ink)",
+                    border: "1px solid var(--g-4)",
+                    padding: "5px 10px",
+                  }}
+                >
+                  ✓ VERIFICADO
                 </span>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>
+
+      <style>{`
+        .test-intro {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 56px;
+          align-items: end;
+        }
+        .test-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          border: 1px solid var(--g-5);
+          gap: 0;
+        }
+        .test-card {
+          padding: 32px;
+          display: flex;
+          flex-direction: column;
+          border-right: 1px solid var(--g-5);
+          border-bottom: 1px solid var(--g-5);
+          min-height: 280px;
+        }
+        .test-card:nth-child(2n) { border-right: 0; }
+        .test-card:nth-child(3),
+        .test-card:nth-child(4) { border-bottom: 0; }
+        @media (max-width: 1024px) {
+          .test-intro { grid-template-columns: 1fr; gap: 24px; }
+        }
+        @media (max-width: 700px) {
+          .test-grid { grid-template-columns: 1fr; }
+          .test-card { border-right: 0 !important; }
+          .test-card:nth-child(3) { border-bottom: 1px solid var(--g-5) !important; }
+        }
+      `}</style>
     </section>
   );
 }

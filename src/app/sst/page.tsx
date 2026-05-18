@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SignatureCanvas from "@/components/SignatureCanvas";
 
 const FORM_TYPES = [
@@ -24,6 +24,16 @@ export default function SSTPage() {
   const [firma, setFirma] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [refCode, setRefCode] = useState("SST-0000");
+  const [dateStr, setDateStr] = useState("");
+  const [timeStr, setTimeStr] = useState("");
+
+  useEffect(() => {
+    setRefCode("SST-" + String(Math.floor(Math.random() * 9000) + 1000));
+    const now = new Date();
+    setDateStr(now.toISOString().slice(0, 10));
+    setTimeStr(now.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", hour12: false }));
+  }, []);
 
   const set = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -51,208 +61,397 @@ export default function SSTPage() {
     }
   };
 
+  /* ── Success state ─────────────────────────────────────────────── */
   if (status === "success") {
     return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 max-w-md w-full text-center">
-          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
+        {/* Top nav */}
+        <nav style={{
+          borderBottom: "1px solid var(--g-5)",
+          padding: "14px var(--pad-x)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+          <a href="/" style={{ fontFamily: "var(--f-mono)", fontSize: 11, color: "var(--ink)", letterSpacing: "0.06em", textDecoration: "none" }}>
+            ← VOLVER AL INICIO
+          </a>
+          <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+            FORM-02 · REV. 2024-Q4
+          </span>
+        </nav>
+
+        {/* Success card */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--pad-x)" }}>
+          <div style={{ border: "1px solid var(--ink)", maxWidth: 480, width: "100%" }}>
+            <div style={{
+              padding: "14px 24px",
+              borderBottom: "1px solid var(--ink)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}>
+              <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.06em", fontWeight: 600, color: "var(--ink)" }}>
+                REGISTRO SST · FORM-02
+              </span>
+              <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+                REF / <span style={{ color: "var(--ink)" }}>{refCode}</span>
+              </span>
+            </div>
+            <div style={{ padding: "40px 32px", display: "flex", flexDirection: "column", gap: 20 }}>
+              <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.08em" }}>
+                STATUS · GUARDADO EN DRIVE
+              </span>
+              <h2 style={{ fontSize: "clamp(28px, 3vw, 44px)", fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.0, color: "var(--ink)" }}>
+                Registro completado.
+              </h2>
+              <p style={{ fontSize: 15, lineHeight: 1.6, color: "var(--g-2)", maxWidth: 380 }}>
+                El formulario <strong style={{ color: "var(--ink)" }}>{form.tipoFormulario}</strong> fue registrado
+                correctamente para <strong style={{ color: "var(--ink)" }}>{form.nombre}</strong> y guardado en Google Drive.
+              </p>
+              <div style={{
+                paddingTop: 20,
+                borderTop: "1px solid var(--g-5)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}>
+                <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+                  FECHA · {dateStr} · MEDELLÍN, CO
+                </span>
+                <button
+                  onClick={() => {
+                    setStatus("idle");
+                    setForm({ nombre: "", cedula: "", cargo: "", empresa: "", tipoFormulario: "" });
+                    setFirma(null);
+                  }}
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    color: "var(--g-3)",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  NUEVO REGISTRO →
+                </button>
+              </div>
+            </div>
           </div>
-          <h2 className="text-2xl font-black text-slate-900 mb-2">¡Registro exitoso!</h2>
-          <p className="text-slate-500 text-sm mb-6">
-            El formulario <strong>{form.tipoFormulario}</strong> fue registrado correctamente para <strong>{form.nombre}</strong>.
-          </p>
-          <button
-            onClick={() => {
-              setStatus("idle");
-              setForm({ nombre: "", cedula: "", cargo: "", empresa: "", tipoFormulario: "" });
-              setFirma(null);
-            }}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
-          >
-            Registrar otro formulario
-          </button>
         </div>
-      </main>
+
+        {/* Page footer */}
+        <footer style={{
+          borderTop: "1px solid var(--g-5)",
+          padding: "14px var(--pad-x)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+          <span style={{ fontFamily: "var(--f-mono)", fontSize: 9, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+            © 2024 JCAG S.A.S · SISTEMA DE GESTIÓN SST
+          </span>
+          <span style={{ fontFamily: "var(--f-mono)", fontSize: 9, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+            FORM-02 / 02 · SHEET 01 OF 01
+          </span>
+        </footer>
+      </div>
     );
   }
 
+  /* ── Main form ─────────────────────────────────────────────────── */
   return (
-    <main className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <a href="/" className="text-sky-700 hover:text-sky-900 text-sm font-medium flex items-center gap-1.5 mb-5 cursor-pointer">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Volver al inicio
-          </a>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-xs text-sky-700 font-semibold uppercase tracking-widest">JCAG S.A.S</p>
-              <h1 className="text-2xl font-black text-slate-900">Registro SST Digital</h1>
-            </div>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
+
+      {/* Top nav */}
+      <nav style={{
+        borderBottom: "1px solid var(--g-5)",
+        padding: "14px var(--pad-x)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}>
+        <a href="/" style={{ fontFamily: "var(--f-mono)", fontSize: 11, color: "var(--ink)", letterSpacing: "0.06em", textDecoration: "none" }}>
+          ← VOLVER AL INICIO
+        </a>
+        <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+          FORM-02 · REV. 2024-Q4
+        </span>
+      </nav>
+
+      {/* Page body */}
+      <div style={{ flex: 1, maxWidth: 720, width: "100%", margin: "0 auto", padding: "56px var(--pad-x) 80px" }}>
+
+        {/* Intro */}
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <span style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: 10,
+              letterSpacing: "0.1em",
+              color: "var(--ink)",
+              border: "1px solid var(--ink)",
+              padding: "4px 10px",
+            }}>
+              JCAG S.A.S
+            </span>
+            <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, letterSpacing: "0.08em", color: "var(--g-3)" }}>
+              FORMULARIO INTERNO · SST · DIGITAL
+            </span>
           </div>
-          <p className="text-slate-500 text-sm">
-            Diligencia el formulario y firma electrónicamente. El documento se guardará automáticamente en Drive.
+          <h1 style={{
+            fontSize: "clamp(32px, 4vw, 56px)",
+            fontWeight: 400,
+            letterSpacing: "-0.028em",
+            lineHeight: 1.0,
+            marginBottom: 16,
+            color: "var(--ink)",
+          }}>
+            Registro <em style={{ fontWeight: 300, fontStyle: "italic" }}>SST</em> Digital.
+          </h1>
+          <p style={{ fontSize: 15, lineHeight: 1.6, color: "var(--g-2)", maxWidth: 480 }}>
+            Diligencia el formulario y añade tu firma electrónica. El documento se guardará automáticamente en Google Drive de JCAG.
           </p>
         </div>
 
         {/* Form card */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 sm:p-8 space-y-5">
+        <form onSubmit={handleSubmit}>
+          <div style={{ border: "1px solid var(--ink)" }}>
 
-            {/* Tipo de formulario */}
-            <div>
-              <label htmlFor="tipo" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Tipo de formulario <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="tipo"
-                required
-                value={form.tipoFormulario}
-                onChange={(e) => set("tipoFormulario", e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white cursor-pointer"
-              >
-                <option value="">Selecciona un tipo...</option>
-                {FORM_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
+            {/* Card title bar */}
+            <div style={{
+              padding: "14px 24px",
+              borderBottom: "1px solid var(--ink)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}>
+              <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.06em", fontWeight: 600, color: "var(--ink)" }}>
+                REGISTRO SST · FORM-02
+              </span>
+              <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+                REF / <span style={{ color: "var(--ink)" }}>{refCode}</span>
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Nombre */}
-              <div className="sm:col-span-2">
-                <label htmlFor="nombre" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Nombre completo <span className="text-red-500">*</span>
-                </label>
+            {/* Fields */}
+            <div style={{ padding: "36px 32px", display: "flex", flexDirection: "column", gap: 28 }}>
+
+              {/* §A TIPO DE FORMULARIO */}
+              <div className="sst-field sst-full">
+                <label>§ A · TIPO DE FORMULARIO *</label>
+                <select
+                  required
+                  value={form.tipoFormulario}
+                  onChange={(e) => set("tipoFormulario", e.target.value)}
+                  className="sst-select"
+                >
+                  <option value="">Selecciona un tipo…</option>
+                  {FORM_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* §B NOMBRE */}
+              <div className="sst-field sst-full">
+                <label>§ B · NOMBRE COMPLETO *</label>
                 <input
-                  id="nombre"
                   type="text"
                   required
                   value={form.nombre}
                   onChange={(e) => set("nombre", e.target.value)}
-                  placeholder="Ej. Juan Carlos Pérez"
-                  className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                  placeholder="Tu nombre completo"
                 />
               </div>
 
-              {/* Cédula */}
-              <div>
-                <label htmlFor="cedula" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Número de cédula <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="cedula"
-                  type="text"
-                  required
-                  inputMode="numeric"
-                  value={form.cedula}
-                  onChange={(e) => set("cedula", e.target.value.replace(/\D/g, ""))}
-                  placeholder="Ej. 1088827353"
-                  className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                />
+              {/* §C + §D — 2 col */}
+              <div className="sst-2col">
+                <div className="sst-field">
+                  <label>§ C · CÉDULA *</label>
+                  <input
+                    type="text"
+                    required
+                    inputMode="numeric"
+                    value={form.cedula}
+                    onChange={(e) => set("cedula", e.target.value.replace(/\D/g, ""))}
+                    placeholder="Número de cédula"
+                  />
+                </div>
+                <div className="sst-field">
+                  <label>§ D · CARGO / ROL *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.cargo}
+                    onChange={(e) => set("cargo", e.target.value)}
+                    placeholder="p. ej. Técnico Electricista"
+                  />
+                </div>
               </div>
 
-              {/* Cargo */}
-              <div>
-                <label htmlFor="cargo" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Cargo / Rol <span className="text-red-500">*</span>
-                </label>
+              {/* §E EMPRESA */}
+              <div className="sst-field sst-full">
+                <label>§ E · EMPRESA / CONTRATISTA</label>
                 <input
-                  id="cargo"
-                  type="text"
-                  required
-                  value={form.cargo}
-                  onChange={(e) => set("cargo", e.target.value)}
-                  placeholder="Ej. Técnico Electricista"
-                  className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              {/* Empresa */}
-              <div className="sm:col-span-2">
-                <label htmlFor="empresa" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Empresa / Contratista <span className="text-slate-400 font-normal">(opcional)</span>
-                </label>
-                <input
-                  id="empresa"
                   type="text"
                   value={form.empresa}
                   onChange={(e) => set("empresa", e.target.value)}
-                  placeholder="Ej. JCAG S.A.S"
-                  className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                  placeholder="Nombre de la empresa (opcional)"
                 />
               </div>
+
+              {/* §F FIRMA */}
+              <div className="sst-field sst-full" style={{ borderBottom: 0, paddingBottom: 0 }}>
+                <label>§ F · FIRMA ELECTRÓNICA *</label>
+                <SignatureCanvas onChange={setFirma} />
+                {errorMsg && errorMsg.includes("firma") && (
+                  <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--ink)", letterSpacing: "0.06em", marginTop: 6 }}>
+                    ↳ {errorMsg}
+                  </span>
+                )}
+              </div>
+
             </div>
 
-            {/* Firma */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Firma electrónica <span className="text-red-500">*</span>
-              </label>
-              <SignatureCanvas onChange={setFirma} />
-              {!firma && status !== "idle" && (
-                <p className="text-red-500 text-xs mt-1">Por favor añade tu firma.</p>
-              )}
+            {/* Metadata row */}
+            <div style={{
+              borderTop: "1px solid var(--g-5)",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+            }}>
+              {[
+                { k: "FECHA", v: dateStr },
+                { k: "HORA", v: timeStr },
+                { k: "UBICACIÓN", v: "MEDELLÍN, CO" },
+              ].map(({ k, v }, i) => (
+                <div key={k} style={{
+                  padding: "16px 24px",
+                  borderRight: i < 2 ? "1px solid var(--g-5)" : undefined,
+                }}>
+                  <div style={{ fontFamily: "var(--f-mono)", fontSize: 9, color: "var(--g-3)", letterSpacing: "0.08em", marginBottom: 4 }}>
+                    {k}
+                  </div>
+                  <div style={{ fontFamily: "var(--f-mono)", fontSize: 12, color: "var(--ink)", letterSpacing: "0.04em" }}>
+                    {v}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Fecha automática */}
-            <div className="bg-slate-50 rounded-lg px-4 py-3 flex items-center gap-2">
-              <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <p className="text-sm text-slate-500">
-                Fecha de registro: <span className="font-semibold text-slate-700">{new Date().toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</span>
-              </p>
-            </div>
-
-            {errorMsg && (
-              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-                <p className="text-red-600 text-sm">{errorMsg}</p>
+            {/* Error message */}
+            {errorMsg && !errorMsg.includes("firma") && (
+              <div style={{
+                borderTop: "1px solid var(--ink)",
+                padding: "14px 24px",
+                display: "flex",
+                gap: 12,
+                alignItems: "center",
+              }}>
+                <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--ink)", letterSpacing: "0.06em" }}>
+                  ERROR ↳
+                </span>
+                <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, color: "var(--ink)" }}>
+                  {errorMsg}
+                </span>
               </div>
             )}
-          </div>
 
-          {/* Footer */}
-          <div className="px-6 sm:px-8 py-5 bg-slate-50 border-t border-slate-200">
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors text-sm cursor-pointer flex items-center justify-center gap-2"
-            >
-              {status === "loading" ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Guardando en Drive...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  Enviar y guardar en Drive
-                </>
-              )}
-            </button>
-            <p className="text-center text-xs text-slate-400 mt-3">
-              El documento se guardará automáticamente en Google Drive de JCAG
-            </p>
+            {/* Submit */}
+            <div style={{ borderTop: "1px solid var(--ink)", padding: "20px 32px" }}>
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="sst-submit"
+              >
+                {status === "loading" ? (
+                  "GUARDANDO EN DRIVE…"
+                ) : (
+                  "↑ ENVIAR Y GUARDAR EN DRIVE →"
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>
-    </main>
+
+      {/* Page footer */}
+      <footer style={{
+        borderTop: "1px solid var(--g-5)",
+        padding: "14px var(--pad-x)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}>
+        <span style={{ fontFamily: "var(--f-mono)", fontSize: 9, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+          © 2024 JCAG S.A.S · SISTEMA DE GESTIÓN SST
+        </span>
+        <span style={{ fontFamily: "var(--f-mono)", fontSize: 9, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+          FORM-02 / 02 · SHEET 01 OF 01
+        </span>
+      </footer>
+
+      <style>{`
+        .sst-field {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          border-bottom: 1px solid var(--ink);
+          padding-bottom: 12px;
+        }
+        .sst-field label {
+          font-family: var(--f-mono);
+          font-size: 10px;
+          color: var(--g-3);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        .sst-field input,
+        .sst-select {
+          font-family: var(--f-ui);
+          font-size: 16px;
+          color: var(--ink);
+          border: 0;
+          outline: 0;
+          background: transparent;
+          padding: 4px 0;
+          width: 100%;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        .sst-field input::placeholder { color: var(--g-4); }
+        .sst-select option { background: var(--bg); color: var(--ink); }
+        .sst-2col {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 28px 32px;
+        }
+        .sst-submit {
+          width: 100%;
+          height: 56px;
+          background: var(--ink);
+          color: var(--ink-inv);
+          font-family: var(--f-mono);
+          font-size: 12px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          font-weight: 500;
+          border: 0;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: opacity var(--t-fast) var(--ease);
+        }
+        .sst-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sst-submit:not(:disabled):hover { opacity: 0.85; }
+        @media (max-width: 600px) {
+          .sst-2col { grid-template-columns: 1fr; gap: 28px; }
+        }
+      `}</style>
+    </div>
   );
 }

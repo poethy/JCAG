@@ -1,131 +1,330 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import HeroDiagram from "./HeroDiagram";
 
-const rotatingWords = [
-  "DISEÑO",
-  "MONTAJE ELÉCTRICO",
-  "OBRA CIVIL",
-  "CONSULTORÍA",
-  "INTERVENTORÍA",
-];
-
-const featuredClients = ["EPM", "CHEC", "ISA", "CELSIA", "ENEL", "CINERGY", "CENS"];
-
-export default function Hero() {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
+/* ── Animated counter hook ─────────────────────────────────────────── */
+function useCounter(
+  target: number,
+  opts: { duration?: number; suffix?: string; prefix?: string } = {}
+) {
+  const { duration = 1600, suffix = "", prefix = "" } = opts;
+  const fmt = (n: number) => prefix + Math.round(n).toString() + suffix;
+  const [val, setVal] = useState(fmt(0));
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setIndex((i) => (i + 1) % rotatingWords.length);
-        setVisible(true);
-      }, 250);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
+    let done = false;
+    const t0 = performance.now();
+
+    const tick = () => {
+      if (done) return;
+      const elapsed = performance.now() - t0;
+      const p = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(fmt(target * eased));
+      if (p < 1) requestAnimationFrame(tick);
+      else done = true;
+    };
+
+    requestAnimationFrame(tick);
+    // Fallback: snap if rAF is throttled (e.g. in sandboxed iframes)
+    const fb = setTimeout(() => {
+      if (!done) { done = true; setVal(fmt(target)); }
+    }, duration + 300);
+
+    return () => { done = true; clearTimeout(fb); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
+  return val;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+export default function Hero() {
+  const v1 = useCounter(4,   { duration: 1100 });
+  const v2 = useCounter(200, { duration: 1600, prefix: "+" });
+  const v3 = useCounter(40,  { duration: 1400, prefix: "+" });
+  const v4 = useCounter(98,  { duration: 1300, suffix: "%" });
+
+  const tiles = [
+    { k: "PAÍSES",       v: v1 },
+    { k: "PROYECTOS",    v: v2 },
+    { k: "ALIADOS",      v: v3 },
+    { k: "SATISFACCIÓN", v: v4 },
+  ];
 
   return (
     <section
-      id="inicio"
-      className="relative min-h-screen flex flex-col justify-center bg-slate-900 overflow-hidden"
+      id="top"
+      style={{
+        paddingTop: 124,
+        paddingBottom: "var(--pad-y-tight)",
+        position: "relative",
+      }}
     >
-      {/* Subtle dot grid pattern */}
       <div
-        className="absolute inset-0 opacity-[0.07]"
+        className="hero-inner"
         style={{
-          backgroundImage: "radial-gradient(circle, #94a3b8 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
+          maxWidth: "var(--max)",
+          margin: "0 auto",
+          padding: "0 var(--pad-x)",
         }}
-      />
-
-      {/* Thin horizontal accent line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-500/40 to-transparent" />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-
-          {/* Left column — main content */}
-          <div className="lg:col-span-7">
-            <p className="text-sky-400 text-sm font-semibold uppercase tracking-[0.2em] mb-6">
-              Infraestructura Eléctrica · Colombia & Latinoamérica
-            </p>
-
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight mb-4">
-              Soluciones en
-            </h1>
-
-            <div className="h-14 sm:h-16 lg:h-20 flex items-center mb-4">
-              <span
-                className={`text-4xl sm:text-5xl lg:text-6xl font-black text-sky-400 tracking-tight transition-opacity duration-250 ${
-                  visible ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                {rotatingWords[index]}
-              </span>
-            </div>
-
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight mb-8">
-              para el sector energético
-            </h2>
-
-            <p className="text-slate-400 text-lg leading-relaxed max-w-lg mb-10 font-light">
-              Especialistas en instalación, mantenimiento y diseño de infraestructura eléctrica en subestaciones y redes de alta tensión.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="#contacto"
-                className="bg-sky-700 hover:bg-sky-600 text-white font-semibold px-7 py-3.5 rounded-xl text-sm transition-colors cursor-pointer"
-              >
-                Contactar ahora
-              </a>
-              <a
-                href="#servicios"
-                className="border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white font-semibold px-7 py-3.5 rounded-xl text-sm transition-colors cursor-pointer"
-              >
-                Ver servicios
-              </a>
-            </div>
+      >
+        {/* ── Left column ── */}
+        <div>
+          {/* Eyebrow */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 14,
+              marginBottom: 32,
+              fontFamily: "var(--f-mono)",
+              fontSize: 11,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: "var(--g-3)",
+              fontWeight: 500,
+            }}
+          >
+            <span>FIG. 01</span>
+            <span
+              style={{
+                display: "inline-block",
+                width: 6,
+                height: 6,
+                background: "var(--ink)",
+                flexShrink: 0,
+              }}
+            />
+            <span>Infraestructura eléctrica · Colombia &amp; Latam</span>
           </div>
 
-          {/* Right column — stats */}
-          <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-            {[
-              { value: "4", label: "Países de operación", sub: "Colombia · Panamá · Rep. Dom · El Salvador" },
-              { value: "+200", label: "Proyectos ejecutados", sub: "A nivel nacional e internacional" },
-              { value: "+40", label: "Aliados empresariales", sub: "EPM, CHEC, ISA, Celsia y más" },
-              { value: "98%", label: "Satisfacción del cliente", sub: "Calificación promedio en proyectos" },
-            ].map((s) => (
+          {/* H1 */}
+          <h1
+            style={{
+              fontSize: "clamp(48px, 9.5vw, 144px)",
+              fontWeight: 400,
+              letterSpacing: "-0.035em",
+              lineHeight: 0.93,
+              marginBottom: 32,
+              fontFamily: "var(--f-ui)",
+            }}
+          >
+            Diseño,
+            <br />
+            montaje y
+            <br />
+            <em style={{ fontStyle: "italic", fontWeight: 300 }}>puesta en</em>
+            <br />
+            servicio.
+          </h1>
+
+          {/* Sub-copy */}
+          <p
+            style={{
+              maxWidth: 480,
+              fontSize: 17,
+              lineHeight: 1.5,
+              color: "var(--g-2)",
+              marginBottom: 40,
+            }}
+          >
+            Firma colombiana especializada en infraestructura eléctrica de alta
+            tensión: subestaciones, redes, generación solar y obra civil asociada.
+          </p>
+
+          {/* ── Stat tiles ── */}
+          <div
+            className="hero-tiles-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 1,
+              background: "var(--g-4)",
+              border: "1px solid var(--g-4)",
+              maxWidth: 600,
+              marginBottom: 32,
+            }}
+          >
+            {tiles.map(({ k, v }) => (
               <div
-                key={s.label}
-                className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/8 transition-colors"
+                key={k}
+                style={{
+                  background: "var(--bg)",
+                  padding: "18px 20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                }}
               >
-                <p className="text-3xl font-black text-white mb-1">{s.value}</p>
-                <p className="text-sky-400 text-xs font-semibold uppercase tracking-wide mb-1">{s.label}</p>
-                <p className="text-slate-500 text-xs leading-snug">{s.sub}</p>
+                <span
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 10,
+                    color: "var(--g-3)",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {k}
+                </span>
+                <span
+                  className="hero-tile-val"
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontWeight: 500,
+                    fontSize: 32,
+                    letterSpacing: "-0.03em",
+                    color: "var(--ink)",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {v}
+                </span>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Client strip */}
-        <div className="mt-16 pt-8 border-t border-white/10">
-          <p className="text-slate-500 text-xs font-medium uppercase tracking-widest mb-5">
-            Empresas que confían en nosotros
-          </p>
-          <div className="flex flex-wrap gap-x-8 gap-y-3 items-center">
-            {featuredClients.map((c) => (
-              <span key={c} className="text-slate-400 font-semibold text-sm hover:text-white transition-colors cursor-default">
-                {c}
+          {/* ── CTAs ── */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {/* Primary */}
+            <a
+              href="#contacto"
+              style={{
+                height: 56,
+                padding: "0 28px",
+                background: "var(--ink)",
+                color: "var(--ink-inv)",
+                fontFamily: "var(--f-mono)",
+                fontSize: 12,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                fontWeight: 500,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 12,
+                transition: "opacity var(--t-fast) var(--ease)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "0.85";
+                const arr = e.currentTarget.querySelector<HTMLElement>(".arr");
+                if (arr) arr.style.transform = "translateX(4px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "1";
+                const arr = e.currentTarget.querySelector<HTMLElement>(".arr");
+                if (arr) arr.style.transform = "translateX(0)";
+              }}
+            >
+              Solicitar cotización{" "}
+              <span
+                className="arr"
+                style={{ transition: "transform var(--t-base) var(--ease)" }}
+              >
+                ↗
               </span>
-            ))}
-            <span className="text-slate-600 text-sm">+35 más</span>
+            </a>
+
+            {/* Ghost */}
+            <a
+              href="#proyectos"
+              style={{
+                height: 56,
+                padding: "0 28px",
+                background: "transparent",
+                color: "var(--ink)",
+                border: "1px solid var(--ink)",
+                fontFamily: "var(--f-mono)",
+                fontSize: 12,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                fontWeight: 500,
+                display: "inline-flex",
+                alignItems: "center",
+                transition: `background var(--t-base) var(--ease), color var(--t-base) var(--ease)`,
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--ink)";
+                e.currentTarget.style.color = "var(--ink-inv)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--ink)";
+              }}
+            >
+              Ver proyectos
+            </a>
           </div>
         </div>
+
+        {/* ── Right column — technical diagram ── */}
+        <div
+          className="hero-diagram-col"
+          style={{
+            alignSelf: "end",
+            position: "relative",
+            width: "100%",
+            aspectRatio: "720 / 500",
+            color: "var(--ink)",
+            paddingLeft: 32,
+            cursor: "crosshair",
+          }}
+        >
+          {/* Vertical hairline divider */}
+          <span
+            className="hero-diagram-border"
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: 0,
+              width: 1,
+              background: "var(--g-5)",
+            }}
+          />
+
+          {/* Frame label */}
+          <span
+            style={{
+              position: "absolute",
+              top: -28,
+              left: 32,
+              fontFamily: "var(--f-mono)",
+              fontSize: 10,
+              letterSpacing: "0.08em",
+              color: "var(--g-3)",
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+            }}
+          >
+            DIAGRAMA UNIFILAR · FLUJO DE POTENCIA
+          </span>
+
+          <HeroDiagram />
+        </div>
       </div>
+
+      <style>{`
+        .hero-inner {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 56px;
+          align-items: end;
+          min-height: 70vh;
+        }
+        @media (max-width: 1024px) {
+          .hero-inner { grid-template-columns: 1fr; gap: 48px; min-height: unset; }
+          .hero-diagram-border { display: none !important; }
+          .hero-diagram-col    { padding-left: 0 !important; }
+        }
+        @media (max-width: 768px) {
+          .hero-tiles-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .hero-tile-val   { font-size: 24px !important; }
+        }
+      `}</style>
     </section>
   );
 }
