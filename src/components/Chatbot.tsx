@@ -60,110 +60,240 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-      {/* Chat window */}
-      {open && (
-        <div className="w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="bg-slate-900 px-4 py-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-sky-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-white text-sm font-semibold">Asistente JCAG</p>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                  <p className="text-slate-400 text-xs">En línea</p>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
-              aria-label="Cerrar chat"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+    <>
+      <div style={{
+        position: "fixed",
+        bottom: 28,
+        right: 28,
+        zIndex: 50,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: 12,
+      }}>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-80 bg-slate-50">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+        {/* Chat window */}
+        {open && (
+          <div className="chatbot-window">
+
+            {/* Header */}
+            <div style={{
+              background: "var(--bg-inv)",
+              padding: "14px 20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexShrink: 0,
+            }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{
+                  fontFamily: "var(--f-mono)",
+                  fontSize: 11,
+                  letterSpacing: "0.08em",
+                  fontWeight: 600,
+                  color: "var(--ink-inv)",
+                }}>
+                  ASISTENTE JCAG
+                </span>
+                <span style={{
+                  fontFamily: "var(--f-mono)",
+                  fontSize: 9,
+                  letterSpacing: "0.08em",
+                  color: "rgba(244,243,238,0.5)",
+                }}>
+                  ● EN LÍNEA · IA
+                </span>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="chatbot-close"
+                aria-label="Cerrar chat"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div className="chatbot-messages">
+              {messages.map((m, i) => (
                 <div
-                  className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                    m.role === "user"
-                      ? "bg-sky-700 text-white rounded-br-sm"
-                      : "bg-white text-slate-700 border border-slate-200 rounded-bl-sm shadow-sm"
-                  }`}
+                  key={i}
+                  className={m.role === "user" ? "chatbot-bubble-user" : "chatbot-bubble-assistant"}
                 >
                   {m.content}
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                  <div className="flex gap-1 items-center">
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:300ms]" />
-                  </div>
+              {loading && (
+                <div className="chatbot-bubble-assistant chatbot-loading">
+                  <span className="chatbot-dot" />
+                  <span className="chatbot-dot" />
+                  <span className="chatbot-dot" />
                 </div>
-              </div>
-            )}
+              )}
 
-            <div ref={bottomRef} />
+              <div ref={bottomRef} />
+            </div>
+
+            {/* Input */}
+            <div style={{
+              borderTop: "1px solid var(--g-5)",
+              padding: "12px 20px",
+              display: "flex",
+              gap: 12,
+              alignItems: "center",
+              flexShrink: 0,
+            }}>
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder="Escribe tu mensaje…"
+                disabled={loading}
+                className="chatbot-input"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={loading || !input.trim()}
+                className="chatbot-send"
+                aria-label="Enviar"
+              >
+                ↑
+              </button>
+            </div>
+
           </div>
-
-          {/* Input */}
-          <div className="p-3 border-t border-slate-200 bg-white flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder="Escribe tu mensaje..."
-              disabled={loading}
-              className="flex-1 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all disabled:opacity-50"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={loading || !input.trim()}
-              className="bg-sky-700 hover:bg-sky-600 disabled:opacity-40 disabled:cursor-not-allowed text-white p-2.5 rounded-xl transition-colors cursor-pointer flex-shrink-0"
-              aria-label="Enviar"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-14 h-14 bg-sky-700 hover:bg-sky-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center justify-center"
-        aria-label={open ? "Cerrar chat" : "Abrir chat"}
-      >
-        {open ? (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-          </svg>
         )}
-      </button>
-    </div>
+
+        {/* Toggle button */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="chatbot-toggle"
+          aria-label={open ? "Cerrar chat" : "Abrir chat"}
+        >
+          {open ? "CERRAR ×" : "CHAT ↗"}
+        </button>
+
+      </div>
+
+      <style>{`
+        .chatbot-window {
+          width: 360px;
+          border: 1px solid var(--ink);
+          background: var(--bg);
+          display: flex;
+          flex-direction: column;
+          max-height: 520px;
+        }
+        .chatbot-messages {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-height: 320px;
+        }
+        .chatbot-messages::-webkit-scrollbar { width: 3px; }
+        .chatbot-messages::-webkit-scrollbar-track { background: transparent; }
+        .chatbot-messages::-webkit-scrollbar-thumb { background: var(--g-4); }
+        .chatbot-bubble-assistant {
+          border: 1px solid var(--g-5);
+          padding: 10px 14px;
+          font-size: 14px;
+          line-height: 1.55;
+          color: var(--ink);
+          max-width: 88%;
+          align-self: flex-start;
+        }
+        .chatbot-bubble-user {
+          background: var(--ink);
+          color: var(--ink-inv);
+          padding: 10px 14px;
+          font-size: 14px;
+          line-height: 1.55;
+          max-width: 88%;
+          align-self: flex-end;
+        }
+        .chatbot-loading {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 14px;
+        }
+        .chatbot-dot {
+          width: 5px;
+          height: 5px;
+          background: var(--g-3);
+          display: inline-block;
+          animation: chatblink 1.4s infinite;
+        }
+        .chatbot-dot:nth-child(2) { animation-delay: 0.2s; }
+        .chatbot-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes chatblink {
+          0%, 80%, 100% { opacity: 0.15; }
+          40% { opacity: 1; }
+        }
+        .chatbot-input {
+          flex: 1;
+          font-family: var(--f-ui);
+          font-size: 14px;
+          color: var(--ink);
+          background: transparent;
+          border: 0;
+          border-bottom: 1px solid var(--ink);
+          padding: 6px 0;
+          outline: 0;
+        }
+        .chatbot-input::placeholder { color: var(--g-4); }
+        .chatbot-input:disabled { opacity: 0.5; }
+        .chatbot-send {
+          width: 36px;
+          height: 36px;
+          background: var(--ink);
+          color: var(--ink-inv);
+          font-family: var(--f-mono);
+          font-size: 14px;
+          border: 0;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: opacity var(--t-fast) var(--ease);
+        }
+        .chatbot-send:disabled { opacity: 0.25; cursor: not-allowed; }
+        .chatbot-send:not(:disabled):hover { opacity: 0.8; }
+        .chatbot-close {
+          background: transparent;
+          border: 0;
+          color: rgba(244,243,238,0.5);
+          font-size: 20px;
+          cursor: pointer;
+          line-height: 1;
+          padding: 0;
+          transition: color var(--t-fast) var(--ease);
+        }
+        .chatbot-close:hover { color: var(--ink-inv); }
+        .chatbot-toggle {
+          height: 44px;
+          padding: 0 20px;
+          background: var(--ink);
+          color: var(--ink-inv);
+          font-family: var(--f-mono);
+          font-size: 11px;
+          letter-spacing: 0.1em;
+          border: 0;
+          cursor: pointer;
+          transition: opacity var(--t-fast) var(--ease);
+        }
+        .chatbot-toggle:hover { opacity: 0.85; }
+        @media (max-width: 480px) {
+          .chatbot-window { width: calc(100vw - 56px); }
+        }
+      `}</style>
+    </>
   );
 }
