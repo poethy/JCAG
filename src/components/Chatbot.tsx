@@ -12,13 +12,22 @@ const WELCOME_MESSAGE: Message = {
   content: "Hola, soy el asistente de JCAG S.A.S. ¿En qué puedo ayudarte? Puedo orientarte sobre nuestros servicios eléctricos o información de empleo.",
 };
 
+const CV_UPLOAD_TRIGGER = "[MOSTRAR_CARGA_CV]";
+
 export default function Chatbot() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]       = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
-  const [input, setInput] = useState("");
+  const [input, setInput]     = useState("");
   const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  // CV upload state
+  const [showCVUpload, setShowCVUpload] = useState(false);
+  const [cvDragging, setCvDragging]     = useState(false);
+  const [cvStatus, setCvStatus]         = useState<"idle" | "uploading">("idle");
+
+  const bottomRef  = useRef<HTMLDivElement>(null);
+  const inputRef   = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -44,7 +53,14 @@ export default function Chatbot() {
         body: JSON.stringify({ messages: updated }),
       });
       const data = await res.json();
-      setMessages([...updated, { role: "assistant", content: data.message || "Lo siento, hubo un error. Contáctenos al 604 479 67 87." }]);
+      const raw: string = data.message || "Lo siento, hubo un error. Contáctenos al 604 479 67 87.";
+
+      // Detect and strip the upload trigger token
+      const triggerUpload = raw.includes(CV_UPLOAD_TRIGGER);
+      const clean = raw.replace(CV_UPLOAD_TRIGGER, "").trim();
+
+      setMessages([...updated, { role: "assistant", content: clean }]);
+      if (triggerUpload) setShowCVUpload(true);
     } catch {
       setMessages([...updated, { role: "assistant", content: "Error de conexión. Por favor contáctenos al 604 479 67 87." }]);
     } finally {
@@ -59,17 +75,81 @@ export default function Chatbot() {
     }
   };
 
+  /* ── CV upload ──────────────────────────────────────────────────── */
+  const handleCV = async (file: File) => {
+    if (cvStatus === "uploading") return;
+    if (!file.type.includes("pdf")) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: "Solo acepto archivos en formato PDF. Por favor intenta con otro archivo.",
+      }]);
+      setShowCVUpload(false);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: "El archivo supera el límite de 5 MB. Por favor comprime el PDF e intenta de nuevo.",
+      }]);
+      return;
+    }
+
+    setCvStatus("uploading");
+
+    const fd = new FormData();
+    fd.append("cv", file);
+
+    try {
+      const res  = await fetch("/api/cv-screen", { method: "POST", body: fd });
+      const data = await res.json();
+
+      setShowCVUpload(false);
+      setCvStatus("idle");
+
+      if (data.result === "success") {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: "¡Tu perfil encaja muy bien con lo que buscamos! Hemos recibido tu hoja de vida. Nuestro equipo de RRHH la revisará y se pondrá en contacto contigo pronto. ¡Gracias por tu interés en JCAG!",
+        }]);
+      } else if (data.error) {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: `No pudimos procesar tu CV: ${data.error}. También puedes enviarlo directamente a administracion@jcagsas.com.co`,
+        }]);
+      } else {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: "Gracias por tu interés en JCAG. En este momento estamos buscando perfiles con un enfoque diferente, pero guardamos tu información para futuras oportunidades. ¡Mucho éxito!",
+        }]);
+      }
+    } catch {
+      setCvStatus("idle");
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: "Hubo un problema al procesar tu hoja de vida. Por favor intenta de nuevo o envíala a administracion@jcagsas.com.co",
+      }]);
+    }
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setCvDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleCV(file);
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleCV(file);
+  };
+
+  /* ── Render ─────────────────────────────────────────────────────── */
   return (
     <>
       <div style={{
-        position: "fixed",
-        bottom: 28,
-        right: 28,
-        zIndex: 50,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
-        gap: 12,
+        position: "fixed", bottom: 28, right: 28,
+        zIndex: 50, display: "flex", flexDirection: "column",
+        alignItems: "flex-end", gap: 12,
       }}>
 
         {/* Chat window */}
@@ -80,50 +160,66 @@ export default function Chatbot() {
             <div style={{
               background: "var(--bg-inv)",
               padding: "14px 20px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
               flexShrink: 0,
             }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{
-                  fontFamily: "var(--f-mono)",
-                  fontSize: 11,
-                  letterSpacing: "0.08em",
-                  fontWeight: 600,
-                  color: "var(--ink-inv)",
-                }}>
+                <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.08em", fontWeight: 600, color: "var(--ink-inv)" }}>
                   ASISTENTE JCAG
                 </span>
-                <span style={{
-                  fontFamily: "var(--f-mono)",
-                  fontSize: 9,
-                  letterSpacing: "0.08em",
-                  color: "rgba(244,243,238,0.5)",
-                }}>
+                <span style={{ fontFamily: "var(--f-mono)", fontSize: 9, letterSpacing: "0.08em", color: "rgba(244,243,238,0.5)" }}>
                   ● EN LÍNEA · IA
                 </span>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="chatbot-close"
-                aria-label="Cerrar chat"
-              >
-                ×
-              </button>
+              <button onClick={() => setOpen(false)} className="chatbot-close" aria-label="Cerrar chat">×</button>
             </div>
 
             {/* Messages */}
             <div className="chatbot-messages">
               {messages.map((m, i) => (
-                <div
-                  key={i}
-                  className={m.role === "user" ? "chatbot-bubble-user" : "chatbot-bubble-assistant"}
-                >
+                <div key={i} className={m.role === "user" ? "chatbot-bubble-user" : "chatbot-bubble-assistant"}>
                   {m.content}
                 </div>
               ))}
 
+              {/* CV Upload zone */}
+              {showCVUpload && (
+                <div className="chatbot-bubble-assistant" style={{ padding: 0, overflow: "hidden" }}>
+                  <div
+                    className={`cv-dropzone${cvDragging ? " cv-dropzone--over" : ""}`}
+                    onDragOver={(e) => { e.preventDefault(); setCvDragging(true); }}
+                    onDragLeave={() => setCvDragging(false)}
+                    onDrop={onDrop}
+                    onClick={() => cvStatus === "idle" && fileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      style={{ display: "none" }}
+                      onChange={onFileChange}
+                    />
+                    {cvStatus === "uploading" ? (
+                      <>
+                        <span className="cv-label">ANALIZANDO PERFIL</span>
+                        <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
+                          <span className="chatbot-dot" />
+                          <span className="chatbot-dot" />
+                          <span className="chatbot-dot" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <span className="cv-arrow">↑</span>
+                        <span className="cv-label">ARRASTRA TU CV AQUÍ</span>
+                        <span className="cv-sub">o haz clic para seleccionar · PDF · máx. 5 MB</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Loading dots */}
               {loading && (
                 <div className="chatbot-bubble-assistant chatbot-loading">
                   <span className="chatbot-dot" />
@@ -137,12 +233,8 @@ export default function Chatbot() {
 
             {/* Input */}
             <div style={{
-              borderTop: "1px solid var(--g-5)",
-              padding: "12px 20px",
-              display: "flex",
-              gap: 12,
-              alignItems: "center",
-              flexShrink: 0,
+              borderTop: "1px solid var(--g-5)", padding: "12px 20px",
+              display: "flex", gap: 12, alignItems: "center", flexShrink: 0,
             }}>
               <input
                 ref={inputRef}
@@ -290,6 +382,44 @@ export default function Chatbot() {
           transition: opacity var(--t-fast) var(--ease);
         }
         .chatbot-toggle:hover { opacity: 0.85; }
+
+        /* CV upload zone */
+        .cv-dropzone {
+          padding: 20px 16px;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          border-top: 1px dashed var(--g-4);
+          background: var(--bg);
+          transition: border-color var(--t-base) var(--ease), background var(--t-base) var(--ease);
+        }
+        .cv-dropzone:hover,
+        .cv-dropzone--over {
+          background: rgba(26,26,24,0.04);
+          border-color: var(--ink);
+        }
+        .cv-arrow {
+          font-size: 22px;
+          color: var(--ink);
+          line-height: 1;
+        }
+        .cv-label {
+          font-family: var(--f-mono);
+          font-size: 10px;
+          letter-spacing: 0.1em;
+          color: var(--ink);
+          text-transform: uppercase;
+        }
+        .cv-sub {
+          font-family: var(--f-mono);
+          font-size: 9px;
+          letter-spacing: 0.06em;
+          color: var(--g-3);
+          text-align: center;
+        }
+
         @media (max-width: 480px) {
           .chatbot-window { width: calc(100vw - 56px); }
         }
