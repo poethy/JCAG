@@ -14,6 +14,13 @@ const WELCOME_MESSAGE: Message = {
 
 const CV_UPLOAD_TRIGGER = "[MOSTRAR_CARGA_CV]";
 
+// Keywords that signal the user wants to submit their CV — client-side fallback
+const CV_INTENT_KEYWORDS = [
+  "hoja de vida", "curriculum", "currículum", " cv ", "cv,", "cv.", "enviar mi cv",
+  "mandar mi cv", "subir mi cv", "quiero aplicar", "quiero trabajar", "busco trabajo",
+  "aplicar a", "postularme", "postular", "enviar mi hoja", "mandar mi hoja",
+];
+
 export default function Chatbot() {
   const [open, setOpen]       = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
@@ -46,6 +53,11 @@ export default function Chatbot() {
     setInput("");
     setLoading(true);
 
+    // Client-side CV intent detection (fallback if LLM misses the token)
+    const lc = text.toLowerCase();
+    const userHasCVIntent = !showCVUpload &&
+      CV_INTENT_KEYWORDS.some((kw) => lc.includes(kw));
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -56,11 +68,13 @@ export default function Chatbot() {
       const raw: string = data.message || "Lo siento, hubo un error. Contáctenos al 604 479 67 87.";
 
       // Detect and strip the upload trigger token
-      const triggerUpload = raw.includes(CV_UPLOAD_TRIGGER);
+      const llmTriggered = raw.includes(CV_UPLOAD_TRIGGER);
       const clean = raw.replace(CV_UPLOAD_TRIGGER, "").trim();
 
       setMessages([...updated, { role: "assistant", content: clean }]);
-      if (triggerUpload) setShowCVUpload(true);
+
+      // Show upload zone if LLM triggered it OR client-side intent matched
+      if (llmTriggered || userHasCVIntent) setShowCVUpload(true);
     } catch {
       setMessages([...updated, { role: "assistant", content: "Error de conexión. Por favor contáctenos al 604 479 67 87." }]);
     } finally {
