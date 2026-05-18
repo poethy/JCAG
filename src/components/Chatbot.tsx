@@ -198,38 +198,76 @@ export default function Chatbot() {
 
               {/* CV Upload zone */}
               {showCVUpload && (
-                <div className="chatbot-bubble-assistant" style={{ padding: 0, overflow: "hidden" }}>
-                  <div
-                    className={`cv-dropzone${cvDragging ? " cv-dropzone--over" : ""}`}
-                    onDragOver={(e) => { e.preventDefault(); setCvDragging(true); }}
-                    onDragLeave={() => setCvDragging(false)}
-                    onDrop={onDrop}
-                    onClick={() => cvStatus === "idle" && fileInputRef.current?.click()}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      style={{ display: "none" }}
-                      onChange={onFileChange}
-                    />
-                    {cvStatus === "uploading" ? (
-                      <>
-                        <span className="cv-label">ANALIZANDO PERFIL</span>
-                        <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
-                          <span className="chatbot-dot" />
-                          <span className="chatbot-dot" />
-                          <span className="chatbot-dot" />
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <span className="cv-arrow">↑</span>
-                        <span className="cv-label">ARRASTRA TU CV AQUÍ</span>
-                        <span className="cv-sub">o haz clic para seleccionar · PDF · máx. 5 MB</span>
-                      </>
-                    )}
-                  </div>
+                <div
+                  className={`cv-dropzone${cvDragging ? " cv-dropzone--over" : ""}`}
+                  onDragOver={(e) => { e.preventDefault(); setCvDragging(true); }}
+                  onDragLeave={() => setCvDragging(false)}
+                  onDrop={onDrop}
+                  onClick={() => cvStatus === "idle" && fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    style={{ display: "none" }}
+                    onChange={onFileChange}
+                  />
+                  {cvStatus === "uploading" ? (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, letterSpacing: "0.12em", color: "var(--g-3)" }}>
+                        ANALIZANDO PERFIL
+                      </span>
+                      <div style={{ display: "flex", gap: 5 }}>
+                        <span className="chatbot-dot" />
+                        <span className="chatbot-dot" />
+                        <span className="chatbot-dot" />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Top label */}
+                      <div style={{
+                        fontFamily: "var(--f-mono)", fontSize: 9, letterSpacing: "0.1em",
+                        color: "var(--g-3)", marginBottom: 12,
+                      }}>
+                        § CV · ADJUNTAR HOJA DE VIDA
+                      </div>
+
+                      {/* Arrow icon */}
+                      <div style={{
+                        width: 40, height: 40,
+                        border: "1px solid var(--ink)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        marginBottom: 12,
+                        transition: "background var(--t-base) var(--ease)",
+                      }} className="cv-icon-box">
+                        <span style={{ fontSize: 18, lineHeight: 1, color: "var(--ink)" }}>↑</span>
+                      </div>
+
+                      {/* Main label */}
+                      <span style={{
+                        fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.08em",
+                        fontWeight: 600, color: "var(--ink)", textTransform: "uppercase",
+                        marginBottom: 6,
+                      }}>
+                        Arrastra tu CV aquí
+                      </span>
+
+                      {/* Sub label */}
+                      <span style={{
+                        fontFamily: "var(--f-mono)", fontSize: 9, letterSpacing: "0.06em",
+                        color: "var(--g-3)", textAlign: "center",
+                      }}>
+                        o haz clic para seleccionar
+                      </span>
+                      <span style={{
+                        fontFamily: "var(--f-mono)", fontSize: 9, letterSpacing: "0.06em",
+                        color: "var(--g-4)", marginTop: 2,
+                      }}>
+                        PDF · MÁX. 5 MB
+                      </span>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -399,39 +437,31 @@ export default function Chatbot() {
 
         /* CV upload zone */
         .cv-dropzone {
+          align-self: flex-start;
+          width: 88%;
           padding: 20px 16px;
           cursor: pointer;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 6px;
-          border-top: 1px dashed var(--g-4);
+          border: 1px dashed var(--g-3);
           background: var(--bg);
           transition: border-color var(--t-base) var(--ease), background var(--t-base) var(--ease);
         }
         .cv-dropzone:hover,
         .cv-dropzone--over {
-          background: rgba(26,26,24,0.04);
           border-color: var(--ink);
+          border-style: solid;
+          background: rgba(26,26,24,0.03);
         }
-        .cv-arrow {
-          font-size: 22px;
-          color: var(--ink);
-          line-height: 1;
+        .cv-dropzone:hover .cv-icon-box,
+        .cv-dropzone--over .cv-icon-box {
+          background: var(--ink);
+          color: var(--ink-inv);
         }
-        .cv-label {
-          font-family: var(--f-mono);
-          font-size: 10px;
-          letter-spacing: 0.1em;
-          color: var(--ink);
-          text-transform: uppercase;
-        }
-        .cv-sub {
-          font-family: var(--f-mono);
-          font-size: 9px;
-          letter-spacing: 0.06em;
-          color: var(--g-3);
-          text-align: center;
+        .cv-dropzone:hover .cv-icon-box span,
+        .cv-dropzone--over .cv-icon-box span {
+          color: var(--ink-inv);
         }
 
         @media (max-width: 480px) {
