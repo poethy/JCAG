@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter_Tight, JetBrains_Mono, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const interTight = Inter_Tight({
@@ -48,6 +49,7 @@ export default function RootLayout({
         className={`${interTight.variable} ${inter.variable} ${jetbrainsMono.variable}`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
