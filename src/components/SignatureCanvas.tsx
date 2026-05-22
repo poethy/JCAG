@@ -1,15 +1,18 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useLayoutEffect } from "react";
 
 interface Props {
   onChange: (dataUrl: string | null) => void;
+  initialValue?: string | null;
 }
 
-export default function SignatureCanvas({ onChange }: Props) {
+export default function SignatureCanvas({ onChange, initialValue }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const hasStroke = useRef(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   const getPos = (e: MouseEvent | Touch, rect: DOMRect) => ({
     x: (e.clientX - rect.left) * (canvasRef.current!.width / rect.width),
@@ -36,9 +39,9 @@ export default function SignatureCanvas({ onChange }: Props) {
   const endDraw = useCallback(() => {
     drawing.current = false;
     if (hasStroke.current && canvasRef.current) {
-      onChange(canvasRef.current.toDataURL("image/png"));
+      onChangeRef.current(canvasRef.current.toDataURL("image/png"));
     }
-  }, [onChange]);
+  }, []);
 
   const drawGrid = useCallback(() => {
     const canvas = canvasRef.current;
@@ -62,14 +65,34 @@ export default function SignatureCanvas({ onChange }: Props) {
     }
   }, []);
 
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    drawGrid();
+    ctx.strokeStyle = "#1a1a18";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if (initialValue) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        hasStroke.current = true;
+      };
+      img.src = initialValue;
+    }
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    drawGrid();
 
     ctx.strokeStyle = "#1a1a18";
     ctx.lineWidth = 2.5;
@@ -112,7 +135,7 @@ export default function SignatureCanvas({ onChange }: Props) {
       canvas.removeEventListener("touchmove", onTouchMove);
       canvas.removeEventListener("touchend", endDraw);
     };
-  }, [startDraw, draw, endDraw, drawGrid]);
+  }, [startDraw, draw, endDraw]);
 
   const clear = () => {
     const canvas = canvasRef.current;
