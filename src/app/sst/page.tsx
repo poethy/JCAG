@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import SignatureModal from "@/components/SignatureModal";
+import { saveRegistro, type InspeccionPayload, type InspeccionRegistro } from "@/lib/inspeccionStore";
+import { downloadInspeccionPdf } from "@/lib/inspeccionPdf";
 
 const INSPECCION_CRITERIOS = [
   "Estado del motor",
@@ -111,6 +113,7 @@ export default function InspeccionPage() {
 
   const [modalOperador, setModalOperador] = useState(false);
   const [modalElaborado, setModalElaborado] = useState(false);
+  const [lastRegistro, setLastRegistro] = useState<InspeccionRegistro | null>(null);
 
   const proyectoRef = useRef<HTMLInputElement>(null);
   const inspectorRef = useRef<HTMLInputElement>(null);
@@ -320,18 +323,18 @@ export default function InspeccionPage() {
     setErrorMsg("");
     setStatus("loading");
 
-    const payload = {
+    const payload: InspeccionPayload = {
       proyecto: form.proyecto.trim(),
       fecha_inspeccion: isoToDisplay(form.fecha_inspeccion),
       inspector_responsable: form.inspector_responsable.trim(),
       inspeccion: form.inspeccion.map((it) => ({
         criterio: it.criterio,
-        respuesta: it.respuesta,
+        respuesta: it.respuesta as "C" | "NC",
         observaciones: it.observaciones,
       })),
       personal: form.personal.map((it) => ({
         criterio: it.criterio,
-        respuesta: it.respuesta,
+        respuesta: it.respuesta as "C" | "NC",
         observaciones: it.observaciones,
       })),
       aceptacion: [
@@ -356,6 +359,15 @@ export default function InspeccionPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al enviar el registro.");
+
+      const registro = saveRegistro(payload, { ref: refCode });
+      setLastRegistro(registro);
+
+      try {
+        downloadInspeccionPdf(registro);
+      } catch (pdfErr) {
+        console.error("Error generando PDF:", pdfErr);
+      }
 
       try {
         localStorage.removeItem(STORAGE_DRAFT);
@@ -459,8 +471,49 @@ export default function InspeccionPage() {
                 La inspección del proyecto{" "}
                 <strong style={{ color: "var(--ink)" }}>{form.proyecto}</strong> realizada por{" "}
                 <strong style={{ color: "var(--ink)" }}>{form.inspector_responsable}</strong> fue
-                registrada correctamente.
+                registrada correctamente. Se descargó automáticamente el PDF.
               </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => lastRegistro && downloadInspeccionPdf(lastRegistro)}
+                  disabled={!lastRegistro}
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 11,
+                    letterSpacing: "0.08em",
+                    color: "var(--ink-inv)",
+                    background: "var(--ink)",
+                    border: "1px solid var(--ink)",
+                    padding: "12px 18px",
+                    cursor: lastRegistro ? "pointer" : "not-allowed",
+                    textTransform: "uppercase",
+                    opacity: lastRegistro ? 1 : 0.5,
+                  }}
+                >
+                  ↓ DESCARGAR PDF
+                </button>
+                <a
+                  href="/sst/registros"
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 11,
+                    letterSpacing: "0.08em",
+                    color: "var(--ink)",
+                    background: "transparent",
+                    border: "1px solid var(--ink)",
+                    padding: "12px 18px",
+                    cursor: "pointer",
+                    textTransform: "uppercase",
+                    textAlign: "center",
+                    textDecoration: "none",
+                  }}
+                >
+                  VER TODAS LAS INSPECCIONES →
+                </a>
+              </div>
+
               <div
                 style={{
                   paddingTop: 20,
@@ -586,9 +639,24 @@ export default function InspeccionPage() {
         >
           ← VOLVER AL INICIO
         </a>
-        <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.06em" }}>
-          INS-01 · REV. 2026-Q2
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <a
+            href="/sst/registros"
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: 11,
+              color: "var(--ink)",
+              letterSpacing: "0.06em",
+              textDecoration: "none",
+              textTransform: "uppercase",
+            }}
+          >
+            VER REGISTROS →
+          </a>
+          <span style={{ fontFamily: "var(--f-mono)", fontSize: 10, color: "var(--g-3)", letterSpacing: "0.06em" }}>
+            INS-01 · REV. 2026-Q2
+          </span>
+        </div>
       </nav>
 
       <div style={{ flex: 1, maxWidth: 960, width: "100%", margin: "0 auto", padding: "56px var(--pad-x) 80px" }}>
